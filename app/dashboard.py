@@ -995,8 +995,10 @@ if "econometric_models" in tm:
                      thickness=2,width=6),
         mode="markers",marker=dict(size=11,color=cl,line=dict(color=WHO_WHITE,width=1.5)),name=mn))
    fig_c.add_hline(y=0,line_dash="dash",line_color=WHO_GRAY,line_width=1.2)
+   # Build a one-off layout: start from _L then override margin so there's no duplicate key
+   _L_coef = {**_L, "margin": dict(t=55, b=100, l=65, r=20)}
    fig_c.update_layout(
-       **_L,
+       **_L_coef,
        title=dict(
            text="Coefficient Estimates with 95% Confidence Intervals",
            font=dict(size=14, color=WHO_NAVY, family="Segoe UI, Arial"),
@@ -1012,12 +1014,11 @@ if "econometric_models" in tm:
        ),
        legend=dict(
            orientation="h", xanchor="center", x=0.5,
-           yanchor="top", y=-0.22,          # below x-axis label
+           yanchor="top", y=-0.22,
            bgcolor="rgba(255,255,255,0.85)",
            bordercolor="#D6E8F7", borderwidth=1,
            font=dict(size=12),
        ),
-       margin=dict(t=55, b=100, l=65, r=20),  # extra bottom for legend
    )
    st.plotly_chart(fig_c, use_container_width=True)
 
