@@ -1,0 +1,106 @@
+{
+  "_comment": "MCH Policy Dashboard — Master Admin Config. Edit via Admin Panel or commit directly.",
+  "branding": {
+    "dashboard_title": "MCH Policy Intelligence Dashboard",
+    "dashboard_subtitle": "Maternal & Child Health · WHO / World Bank Data · Ministry of Health, Ghana · Explainable AI · Panel Econometrics · Policy Simulation",
+    "footer_text": "MCH Policy Intelligence Dashboard · Data: World Health Organization (WHO) / World Bank · Prepared for the Ministry of Health, Ghana · MPhil Data Science · 2026",
+    "show_tabs": {
+      "global_overview": true,
+      "country_analysis": true,
+      "econometric_models": true,
+      "xai_features": true,
+      "policy_simulation": true
+    }
+  },
+  "risk_thresholds": {
+    "high_mmr": 300,
+    "medium_mmr": 100,
+    "low_mmr": 50,
+    "labels": {
+      "high": "High Risk",
+      "medium": "Moderate Risk",
+      "low": "Low Risk",
+      "very_low": "On Track"
+    },
+    "colors": {
+      "high": "#E63329",
+      "medium": "#F39200",
+      "low": "#009FD4",
+      "very_low": "#00A651"
+    }
+  },
+  "who_benchmarks": {
+    "sdg_mmr_target": 70,
+    "sdg_target_year": 2030,
+    "sdg_label": "SDG 3.1 Target (2030)",
+    "min_health_expenditure_pct_gdp": 5.0,
+    "min_health_exp_label": "WHO Min. Health Exp. Threshold (5% GDP)",
+    "show_benchmark_lines": true
+  },
+  "model_settings": {
+    "default_model": "Random Forest",
+    "random_forest": {
+      "n_estimators": 150,
+      "max_depth": 8,
+      "min_samples_leaf": 3
+    },
+    "gradient_boosting": {
+      "n_estimators": 150,
+      "learning_rate": 0.08,
+      "max_depth": 4,
+      "subsample": 0.8
+    },
+    "test_split": 0.2,
+    "random_state": 42
+  },
+  "policy_simulation": {
+    "slider_ranges": {
+      "gdp_pct": {"min": -30, "max": 60, "step": 5},
+      "health_pct": {"min": -30, "max": 100, "step": 5},
+      "fertility_pct": {"min": -50, "max": 20, "step": 5},
+      "education_pct": {"min": -20, "max": 60, "step": 5}
+    },
+    "government_scenario": {
+      "name": "Ghana Health Sector Strategy 2030",
+      "gdp_pct": 15,
+      "health_pct": 40,
+      "fertility_pct": -15,
+      "education_pct": 25
+    },
+    "show_gov_scenario_button": true
+  },
+  "country_settings": {
+    "default_country": "Ghana",
+    "peer_groups": {
+      "Ghana": ["Nigeria", "Kenya", "Senegal", "Côte d'Ivoire", "Cameroon"],
+      "Kenya": ["Ghana", "Tanzania", "Uganda", "Ethiopia", "Rwanda"],
+      "Nigeria": ["Ghana", "Ethiopia", "Tanzania", "Cameroon", "Côte d'Ivoire"],
+      "Ethiopia": ["Kenya", "Nigeria", "Tanzania", "Sudan", "Somalia"]
+    },
+    "policy_recommendations": {
+      "Ghana": "Priority: Increase skilled birth attendance (currently ~87%). Expand Community Health Planning Services (CHPS) to underserved rural zones. Target health expenditure of 8% GDP by 2030 in line with Abuja Declaration.",
+      "Nigeria": "Priority: Strengthen primary healthcare infrastructure in the North. Accelerate female secondary education enrollment, particularly in rural states. Address geographic disparities in skilled birth attendance.",
+      "Kenya": "Priority: Sustain gains in facility-based deliveries. Scale up community midwifery programmes in semi-arid regions. Leverage NHIF expansion to reduce financial barriers to maternal care.",
+      "Ethiopia": "Priority: Expand Health Extension Programme to all kebeles. Address high adolescent fertility through community engagement. Increase government health budget share toward WHO minimum of 5% GDP."
+    },
+    "timeline_annotations": {
+      "Ghana": [
+        {"year": 2003, "label": "NHIS Established", "color": "#009FD4"},
+        {"year": 2008, "label": "Free Maternal Care Policy", "color": "#00A651"},
+        {"year": 2017, "label": "CHPS Revitalisation", "color": "#F39200"}
+      ],
+      "Kenya": [
+        {"year": 2013, "label": "Free Maternal Healthcare", "color": "#00A651"},
+        {"year": 2018, "label": "UHC Pilot Begins", "color": "#009FD4"}
+      ],
+      "Nigeria": [
+        {"year": 2011, "label": "MDG Fund for MCH", "color": "#009FD4"},
+        {"year": 2016, "label": "Basic Health Care Provision Fund", "color": "#00A651"}
+      ],
+      "Ethiopia": [
+        {"year": 2004, "label": "Health Extension Programme", "color": "#00A651"},
+        {"year": 2015, "label": "HEP Phase II Expansion", "color": "#009FD4"}
+      ]
+    }
+  }
+}
