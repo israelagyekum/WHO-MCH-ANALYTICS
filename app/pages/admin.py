@@ -98,7 +98,12 @@ if not st.session_state.admin_authed:
 # Logged-in toolbar
 c_back, c_status, c_out = st.columns([1, 5, 1])
 with c_back:
-    st.page_link("dashboard.py", label="← Dashboard")
+    st.markdown(
+        '<a href="/" target="_self" style="'
+        'text-decoration:none;font-weight:700;color:#003F87;'
+        'font-size:0.9rem;">← Dashboard</a>',
+        unsafe_allow_html=True,
+    )
 with c_status:
     st.info("✅ Logged in as Admin — changes apply to the live dashboard immediately.")
 with c_out:
