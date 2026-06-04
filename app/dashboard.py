@@ -400,18 +400,10 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("*Ministry of Health, Ghana*  \n*MPhil Data Science · 2026*")
     st.markdown("---")
-    # Admin Panel — HTML anchor to /admin bypasses Streamlit's page registry
-    # (st.page_link causes KeyError on some Cloud versions)
-    st.markdown(
-        '<a href="/admin" target="_self" style="'
-        'display:block;text-align:center;padding:0.5rem 0.9rem;'
-        'background:rgba(0,159,212,0.30);color:white !important;'
-        'border:1.5px solid rgba(0,159,212,0.7);border-radius:8px;'
-        'font-weight:700;text-decoration:none;'
-        'font-family:\'Segoe UI\',Arial,sans-serif;font-size:0.9rem;">'
-        '⚙️ &nbsp;Admin Panel</a>',
-        unsafe_allow_html=True,
-    )
+    # Admin Panel — st.switch_page is the only reliable navigation
+    # method in Streamlit Cloud (HTML anchors are intercepted by SPA runtime)
+    if st.button("\u2699\ufe0f  Admin Panel", use_container_width=True, key="nav_admin"):
+        st.switch_page("pages/admin.py")
 
 # ── Derived values ─────────────────────────────────────────────────────────────
 am   = models["rf"] if mc == "Random Forest" else models["gb"]
@@ -834,7 +826,9 @@ if "policy_simulation" in tm:
                          f"{sv2['female_secondary_enrollment']:.1f}%  ({ep:+d}%)"]}),
       use_container_width=True, hide_index=True)
 
-# ── Footer ──────────────────────────────────────────────────────────────────
+# ── Footer ─────────────────────────────────────────────────────────────────
+
+# ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown("---")
 st.markdown(f"""<div style="text-align:center;color:{WHO_GRAY};font-size:0.8rem;padding:0.4rem 0 1rem;">
   {FOOT}<br>
