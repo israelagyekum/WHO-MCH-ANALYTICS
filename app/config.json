@@ -55,10 +55,26 @@
   },
   "policy_simulation": {
     "slider_ranges": {
-      "gdp_pct": {"min": -30, "max": 60, "step": 5},
-      "health_pct": {"min": -30, "max": 100, "step": 5},
-      "fertility_pct": {"min": -50, "max": 20, "step": 5},
-      "education_pct": {"min": -20, "max": 60, "step": 5}
+      "gdp_pct": {
+        "min": -30,
+        "max": 60,
+        "step": 5
+      },
+      "health_pct": {
+        "min": -30,
+        "max": 100,
+        "step": 5
+      },
+      "fertility_pct": {
+        "min": -50,
+        "max": 20,
+        "step": 5
+      },
+      "education_pct": {
+        "min": -20,
+        "max": 60,
+        "step": 5
+      }
     },
     "government_scenario": {
       "name": "Ghana Health Sector Strategy 2030",
@@ -72,10 +88,34 @@
   "country_settings": {
     "default_country": "Ghana",
     "peer_groups": {
-      "Ghana": ["Nigeria", "Kenya", "Senegal", "Côte d'Ivoire", "Cameroon"],
-      "Kenya": ["Ghana", "Tanzania", "Uganda", "Ethiopia", "Rwanda"],
-      "Nigeria": ["Ghana", "Ethiopia", "Tanzania", "Cameroon", "Côte d'Ivoire"],
-      "Ethiopia": ["Kenya", "Nigeria", "Tanzania", "Sudan", "Somalia"]
+      "Ghana": [
+        "Nigeria",
+        "Kenya",
+        "Senegal",
+        "Côte d'Ivoire",
+        "Cameroon"
+      ],
+      "Kenya": [
+        "Ghana",
+        "Tanzania",
+        "Uganda",
+        "Ethiopia",
+        "Rwanda"
+      ],
+      "Nigeria": [
+        "Ghana",
+        "Ethiopia",
+        "Tanzania",
+        "Cameroon",
+        "Côte d'Ivoire"
+      ],
+      "Ethiopia": [
+        "Kenya",
+        "Nigeria",
+        "Tanzania",
+        "Sudan",
+        "Somalia"
+      ]
     },
     "policy_recommendations": {
       "Ghana": "Priority: Increase skilled birth attendance (currently ~87%). Expand Community Health Planning Services (CHPS) to underserved rural zones. Target health expenditure of 8% GDP by 2030 in line with Abuja Declaration.",
@@ -85,22 +125,78 @@
     },
     "timeline_annotations": {
       "Ghana": [
-        {"year": 2003, "label": "NHIS Established", "color": "#009FD4"},
-        {"year": 2008, "label": "Free Maternal Care Policy", "color": "#00A651"},
-        {"year": 2017, "label": "CHPS Revitalisation", "color": "#F39200"}
+        {
+          "year": 2003,
+          "label": "NHIS Established",
+          "color": "#009FD4"
+        },
+        {
+          "year": 2008,
+          "label": "Free Maternal Care Policy",
+          "color": "#00A651"
+        },
+        {
+          "year": 2017,
+          "label": "CHPS Revitalisation",
+          "color": "#F39200"
+        }
       ],
       "Kenya": [
-        {"year": 2013, "label": "Free Maternal Healthcare", "color": "#00A651"},
-        {"year": 2018, "label": "UHC Pilot Begins", "color": "#009FD4"}
+        {
+          "year": 2013,
+          "label": "Free Maternal Healthcare",
+          "color": "#00A651"
+        },
+        {
+          "year": 2018,
+          "label": "UHC Pilot Begins",
+          "color": "#009FD4"
+        }
       ],
       "Nigeria": [
-        {"year": 2011, "label": "MDG Fund for MCH", "color": "#009FD4"},
-        {"year": 2016, "label": "Basic Health Care Provision Fund", "color": "#00A651"}
+        {
+          "year": 2011,
+          "label": "MDG Fund for MCH",
+          "color": "#009FD4"
+        },
+        {
+          "year": 2016,
+          "label": "Basic Health Care Provision Fund",
+          "color": "#00A651"
+        }
       ],
       "Ethiopia": [
-        {"year": 2004, "label": "Health Extension Programme", "color": "#00A651"},
-        {"year": 2015, "label": "HEP Phase II Expansion", "color": "#009FD4"}
+        {
+          "year": 2004,
+          "label": "Health Extension Programme",
+          "color": "#00A651"
+        },
+        {
+          "year": 2015,
+          "label": "HEP Phase II Expansion",
+          "color": "#009FD4"
+        }
       ]
     }
-  }
+  },
+  "econometrics": {
+    "show_ols": true,
+    "show_fe": true,
+    "significance_level": 0.05,
+    "features_in_model": [
+      "log_gdp",
+      "log_health_exp",
+      "fertility_rate",
+      "female_secondary_enrollment"
+    ]
+  },
+  "alerts": [
+    {
+      "country": "Nigeria",
+      "threshold": 500,
+      "message": "MMR exceeds 500 per 100,000 — urgent intervention required. Prioritise skilled birth attendance scale-up.",
+      "color": "#E63329",
+      "active": true
+    }
+  ]
 }
