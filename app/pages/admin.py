@@ -99,7 +99,9 @@ if not st.session_state.admin_authed:
 c_back, c_status, c_out = st.columns([1, 5, 1])
 with c_back:
     if st.button("\u2190 Dashboard", key="nav_back"):
-        st.switch_page("dashboard.py")
+        import streamlit.components.v1 as _stc
+        _stc.html("<script>window.parent.location.pathname='/';</script>", height=0)
+        st.stop()
 with c_status:
     st.info("✅ Logged in as Admin — changes apply to the live dashboard immediately.")
 with c_out:

@@ -400,10 +400,12 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("*Ministry of Health, Ghana*  \n*MPhil Data Science · 2026*")
     st.markdown("---")
-    # Admin Panel — st.switch_page is the only reliable navigation
-    # method in Streamlit Cloud (HTML anchors are intercepted by SPA runtime)
+    # Admin Panel — JS pathname navigation bypasses Streamlit's page registry
+    # entirely and works on every Streamlit version deployed on Cloud.
     if st.button("\u2699\ufe0f  Admin Panel", use_container_width=True, key="nav_admin"):
-        st.switch_page("pages/admin.py")
+        import streamlit.components.v1 as _stc
+        _stc.html("<script>window.parent.location.pathname='/admin';</script>", height=0)
+        st.stop()
 
 # ── Derived values ─────────────────────────────────────────────────────────────
 am   = models["rf"] if mc == "Random Forest" else models["gb"]
