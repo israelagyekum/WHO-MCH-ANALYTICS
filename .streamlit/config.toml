@@ -1,0 +1,15 @@
+[theme]
+# WHO Official Colour Palette
+primaryColor       = "#009FD4"   # WHO Sky Blue
+backgroundColor    = "#F4F7FB"   # Soft blue-white background
+secondaryBackgroundColor = "#EFF6FB"  # WHO Light Blue panels
+textColor          = "#1E3A5F"   # Deep navy text
+font               = "sans serif"
+
+[server]
+headless        = true
+enableCORS      = false
+enableXsrfProtection = true
+
+[browser]
+gatherUsageStats = false

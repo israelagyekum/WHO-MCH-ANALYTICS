@@ -1,4 +1,31 @@
-models/*.pkl
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+.Python
+
+# Virtual environments
+venv/
+env/
+.env
+.venv
+test_env/
+
+# Saved model files (we train in-memory — pkl not needed)
+models/*.pkl
+models/*.joblib
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Streamlit secrets (never commit these)
+.streamlit/secrets.toml
