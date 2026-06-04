@@ -44,21 +44,93 @@ st.set_page_config(page_title="MCH Policy Dashboard — Ghana MoH",
                    initial_sidebar_state="expanded")
 
 st.markdown(f"""<style>
+/* ── App background ── */
 [data-testid="stAppViewContainer"]{{background-color:#F4F7FB;}}
-[data-testid="stSidebar"]{{background:linear-gradient(180deg,{WHO_NAVY} 0%,#002966 100%);padding-top:1rem;}}
-[data-testid="stSidebar"] *{{color:{WHO_WHITE} !important;}}
+
+/* ── Sidebar background ── */
+[data-testid="stSidebar"]{{
+  background:linear-gradient(180deg,{WHO_NAVY} 0%,#002966 100%);
+  padding-top:0.5rem;
+}}
+
+/* ── Sidebar labels & plain text ── */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] div.stMarkdown,
+[data-testid="stSidebar"] .stRadio label,
+[data-testid="stSidebar"] small {{
+  color:{WHO_WHITE} !important;
+}}
+
+/* ── Sidebar selectbox — dark input with white text ── */
+[data-testid="stSidebar"] [data-baseweb="select"] > div {{
+  background:rgba(255,255,255,0.12) !important;
+  border:1px solid rgba(255,255,255,0.25) !important;
+  border-radius:6px !important;
+}}
+[data-testid="stSidebar"] [data-baseweb="select"] span {{
+  color:{WHO_WHITE} !important;
+}}
+
+/* ── Sidebar radio buttons ── */
+[data-testid="stSidebar"] [data-testid="stRadio"] > div {{
+  background:rgba(255,255,255,0.08);
+  border-radius:6px; padding:4px 8px;
+}}
+
+/* ── Multipage navigation ── */
+[data-testid="stSidebarNav"] {{
+  background:rgba(0,0,0,0.15);
+  border-radius:8px; padding:4px; margin-bottom:0.5rem;
+}}
+[data-testid="stSidebarNav"] a {{
+  color:rgba(255,255,255,0.85) !important;
+  border-radius:6px; padding:6px 12px;
+  font-weight:600; font-size:0.88rem;
+  display:block; text-decoration:none;
+}}
+[data-testid="stSidebarNav"] a:hover {{
+  background:rgba(0,159,212,0.25) !important;
+  color:{WHO_WHITE} !important;
+}}
+[data-testid="stSidebarNav"] [aria-selected="true"],
+[data-testid="stSidebarNav"] a[aria-current="page"] {{
+  background:{WHO_BLUE} !important;
+  color:{WHO_WHITE} !important;
+}}
+
+/* ── Headers ── */
 h1,h2,h3,h4{{color:{WHO_NAVY} !important;font-family:'Segoe UI',Arial,sans-serif !important;}}
-[data-testid="metric-container"]{{background:{WHO_WHITE};border:1px solid #D6E8F7;
+
+/* ── Metric cards ── */
+[data-testid="metric-container"]{{
+  background:{WHO_WHITE};border:1px solid #D6E8F7;
   border-left:5px solid {WHO_BLUE};border-radius:8px;
-  padding:0.75rem 1rem;box-shadow:0 2px 8px rgba(0,63,135,0.07);}}
+  padding:0.75rem 1rem;box-shadow:0 2px 8px rgba(0,63,135,0.07);
+}}
 [data-testid="stMetricValue"]{{color:{WHO_NAVY} !important;font-weight:700;font-size:1.5rem !important;}}
 [data-testid="stMetricLabel"]{{color:{WHO_GRAY} !important;font-size:0.75rem !important;text-transform:uppercase;}}
-.stTabs [data-baseweb="tab-list"]{{gap:4px;background:{WHO_LIGHT};border-radius:10px 10px 0 0;padding:6px 6px 0;}}
-.stTabs [data-baseweb="tab"]{{background:transparent;color:{WHO_GRAY};border-radius:8px 8px 0 0;font-weight:600;font-size:0.85rem;padding:8px 18px;border:none;}}
-.stTabs [aria-selected="true"]{{background:{WHO_NAVY} !important;color:{WHO_WHITE} !important;}}
-.sec-hdr{{background:linear-gradient(90deg,{WHO_NAVY},{WHO_BLUE});color:white;
+
+/* ── Tabs ── */
+.stTabs [data-baseweb="tab-list"]{{
+  gap:4px;background:{WHO_LIGHT};border-radius:10px 10px 0 0;padding:6px 6px 0;
+}}
+.stTabs [data-baseweb="tab"]{{
+  background:transparent;color:{WHO_GRAY};border-radius:8px 8px 0 0;
+  font-weight:600;font-size:0.85rem;padding:8px 18px;border:none;
+}}
+.stTabs [aria-selected="true"]{{
+  background:{WHO_NAVY} !important;color:{WHO_WHITE} !important;
+}}
+
+/* ── Section headers ── */
+.sec-hdr{{
+  background:linear-gradient(90deg,{WHO_NAVY},{WHO_BLUE});color:white;
   padding:0.45rem 1rem;border-radius:6px;font-weight:700;font-size:0.95rem;
-  margin:1.2rem 0 0.8rem;}}
+  margin:1.2rem 0 0.8rem;
+}}
+
 footer,#MainMenu{{display:none !important;visibility:hidden;}}
 </style>""", unsafe_allow_html=True)
 
@@ -187,6 +259,16 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("<div style='font-size:0.72rem;color:rgba(255,255,255,0.5);text-align:center;'>"
                 "Ministry of Health, Ghana<br>MPhil Data Science · 2026</div>",unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown(
+        f"""<a href="/admin" target="_self"
+            style="display:block;background:rgba(0,159,212,0.25);color:white;
+                   text-align:center;padding:8px;border-radius:8px;
+                   border:1px solid rgba(0,159,212,0.5);font-weight:700;
+                   font-size:0.85rem;text-decoration:none;margin-top:4px;">
+            ⚙️ &nbsp;Admin Panel
+        </a>""",
+        unsafe_allow_html=True)
 
 # ── Derived ───────────────────────────────────────────────────────────────────
 am  = models["rf"] if mc=="Random Forest" else models["gb"]
