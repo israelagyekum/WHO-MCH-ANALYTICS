@@ -304,6 +304,356 @@ def show_alerts(country, cfg):
                 unsafe_allow_html=True)
 
 
+# ── Inline Admin Panel ────────────────────────────────────────────────────────
+def _admin_password():
+    try:    return st.secrets["ADMIN_PASSWORD"]
+    except: return "moh_ghana_2026"
+
+def _save_cfg(cfg):
+    st.session_state["admin_cfg"] = cfg
+    st.session_state["cfg_updated"] = False  # already in session_state
+    try:
+        with open(CONFIG_PATH, "w") as f:
+            json.dump(cfg, f, indent=2, ensure_ascii=False)
+    except Exception:
+        pass  # read-only on Cloud — session_state already updated
+
+def _show_inline_admin():
+    """Full admin panel rendered inline in the main content area."""
+    WHO_N = WHO_NAVY; WHO_B = WHO_BLUE
+    # ── Auth gate ─────────────────────────────────────────────────────────────
+    if "admin_authed" not in st.session_state:
+        st.session_state.admin_authed = False
+    if not st.session_state.admin_authed:
+        st.markdown(f"""
+        <div style="background:linear-gradient(135deg,{WHO_N} 0%,{WHO_B} 100%);
+                    padding:1.2rem 2rem;border-radius:12px;margin-bottom:1.5rem;">
+          <div style="color:white;font-size:1.4rem;font-weight:800;">
+            ⚙️ &nbsp;Admin Control Panel — MCH Policy Dashboard
+          </div>
+          <div style="color:rgba(255,255,255,0.8);font-size:0.85rem;margin-top:0.3rem;">
+            Ministry of Health, Ghana &nbsp;·&nbsp; Restricted Access
+          </div>
+        </div>""", unsafe_allow_html=True)
+        _, col, _ = st.columns([1,1,1])
+        with col:
+            st.markdown(f"""<div style="background:white;border-radius:12px;padding:2rem;
+                box-shadow:0 4px 24px rgba(0,63,135,0.12);
+                border-top:4px solid {WHO_N};text-align:center;">
+                <div style="font-size:2rem;margin-bottom:0.5rem;">🔐</div>
+                <div style="color:{WHO_N};font-weight:700;font-size:1.1rem;margin-bottom:1rem;">
+                Admin Login</div></div>""", unsafe_allow_html=True)
+            pwd = st.text_input("Password", type="password",
+                                placeholder="Enter admin password",
+                                label_visibility="collapsed")
+            if st.button("Sign In →", use_container_width=True, type="primary"):
+                if pwd == _admin_password():
+                    st.session_state.admin_authed = True
+                    st.rerun()
+                else:
+                    st.error("Incorrect password.")
+        return
+    # ── Toolbar ───────────────────────────────────────────────────────────────
+    st.markdown(f"""
+    <div style="background:linear-gradient(135deg,{WHO_N} 0%,{WHO_B} 100%);
+                padding:1.2rem 2rem;border-radius:12px;margin-bottom:1rem;">
+      <div style="color:white;font-size:1.4rem;font-weight:800;">
+        ⚙️ &nbsp;Admin Control Panel — MCH Policy Dashboard
+      </div>
+      <div style="color:rgba(255,255,255,0.8);font-size:0.85rem;margin-top:0.3rem;">
+        Ministry of Health, Ghana &nbsp;·&nbsp; Changes apply immediately
+      </div>
+    </div>""", unsafe_allow_html=True)
+    cb, cs, co = st.columns([1,5,1])
+    with cb:
+        if st.button("← Dashboard", key="adm_back"):
+            st.session_state["_admin_open"] = False
+            st.rerun()
+    with cs:
+        st.info("✅ Logged in as Admin — all changes are live in this session.")
+    with co:
+        if st.button("Logout", key="adm_logout"):
+            st.session_state.admin_authed = False
+            st.rerun()
+    cfg = get_cfg()
+    adm_css = f"""<style>
+    .adm{{background:linear-gradient(90deg,{WHO_N},{WHO_B});color:white;
+      padding:0.45rem 1rem;border-radius:6px;font-weight:700;
+      font-size:0.92rem;margin:1.1rem 0 0.8rem;}}
+    </style>"""
+    st.markdown(adm_css, unsafe_allow_html=True)
+    t1,t2,t3,t4,t5,t6,t7,t8,t9 = st.tabs([
+        "🏷️ Branding","🚨 Risk Thresholds","🎯 WHO Benchmarks",
+        "🤖 Model Settings","📋 Policy Simulation","📊 Econometrics",
+        "🔔 Alerts","🌍 Country Settings","💾 Save & Export",
+    ])
+    # ── TAB 1  BRANDING ───────────────────────────────────────────────────────
+    with t1:
+        st.markdown('<div class="adm">🏷️ Dashboard Branding & Messaging</div>', unsafe_allow_html=True)
+        b = cfg.get("branding", {})
+        nt = st.text_input("Dashboard Title", value=b.get("dashboard_title","MCH Policy Intelligence Dashboard"), key="adm_t")
+        ns = st.text_area("Subtitle / Tagline", value=b.get("dashboard_subtitle",""), height=70, key="adm_s")
+        nf = st.text_area("Footer Text", value=b.get("footer_text",""), height=70, key="adm_f")
+        st.markdown('<div class="adm">Show / Hide Dashboard Tabs</div>', unsafe_allow_html=True)
+        TAB_MAP = {"global_overview":"🌍 Global Overview","country_analysis":"🔬 Country Analysis",
+                   "econometric_models":"📊 Econometric Models","xai_features":"🤖 XAI & Feature Analysis",
+                   "policy_simulation":"🎯 Policy Simulation"}
+        cur_tabs = b.get("show_tabs", {}); new_show = {}
+        tcols = st.columns(len(TAB_MAP))
+        for i,(k,lbl) in enumerate(TAB_MAP.items()):
+            new_show[k] = tcols[i].checkbox(lbl, value=cur_tabs.get(k,True), key=f"adm_st_{k}")
+        if st.button("💾 Apply Branding", type="primary", key="adm_btn_br"):
+            cfg.setdefault("branding",{})
+            cfg["branding"].update({"dashboard_title":nt,"dashboard_subtitle":ns,"footer_text":nf,"show_tabs":new_show})
+            _save_cfg(cfg); st.success("✅ Applied!")
+    # ── TAB 2  RISK THRESHOLDS ────────────────────────────────────────────────
+    with t2:
+        st.markdown('<div class="adm">🚨 MMR Risk Classification Thresholds</div>', unsafe_allow_html=True)
+        st.info("Coloured badges appear next to the MMR metric on the Country Analysis tab.")
+        rt = cfg.get("risk_thresholds",{})
+        rc1,rc2,rc3 = st.columns(3)
+        nh = rc1.number_input("🔴 High Risk — MMR above",   value=int(rt.get("high_mmr",300)),   step=10, key="adm_rh")
+        nm = rc2.number_input("🟡 Moderate — MMR above",    value=int(rt.get("medium_mmr",100)), step=10, key="adm_rm")
+        nl = rc3.number_input("🟢 Low Risk — MMR above",    value=int(rt.get("low_mmr",50)),     step=5,  key="adm_rl")
+        clrs = rt.get("colors",{"high":WHO_RED,"medium":WHO_AMBER,"low":WHO_BLUE,"very_low":WHO_GREEN})
+        lbls = rt.get("labels",{"high":"High Risk","medium":"Moderate Risk","low":"Low Risk","very_low":"On Track"})
+        pcols = st.columns(4)
+        for pcol, mmr in zip(pcols,[700,300,120,40]):
+            if   mmr>nh: c,l = clrs.get("high",WHO_RED),   lbls.get("high","High Risk")
+            elif mmr>nm: c,l = clrs.get("medium",WHO_AMBER),lbls.get("medium","Moderate Risk")
+            elif mmr>nl: c,l = clrs.get("low",WHO_BLUE),   lbls.get("low","Low Risk")
+            else:        c,l = clrs.get("very_low",WHO_GREEN),lbls.get("very_low","On Track")
+            pcol.markdown(f'<div style="text-align:center">MMR={mmr}<br><span style="background:{c};color:white;padding:3px 10px;border-radius:12px;font-size:0.8rem;font-weight:700">{l}</span></div>', unsafe_allow_html=True)
+        if st.button("💾 Apply Risk Thresholds", type="primary", key="adm_btn_rt"):
+            cfg.setdefault("risk_thresholds",{})
+            cfg["risk_thresholds"].update({"high_mmr":int(nh),"medium_mmr":int(nm),"low_mmr":int(nl)})
+            _save_cfg(cfg); st.success("✅ Risk thresholds updated.")
+    # ── TAB 3  WHO BENCHMARKS ─────────────────────────────────────────────────
+    with t3:
+        st.markdown('<div class="adm">🎯 WHO / SDG Benchmark Lines</div>', unsafe_allow_html=True)
+        wb = cfg.get("who_benchmarks",{})
+        wc1,wc2,wc3 = st.columns(3)
+        wsdg  = wc1.number_input("SDG 3.1 MMR Target (per 100k)", value=float(wb.get("sdg_mmr_target",70)), step=5.0, key="adm_wsdg")
+        wyr   = wc2.number_input("Target Year", value=int(wb.get("sdg_target_year",2030)), min_value=2025, max_value=2050, key="adm_wyr")
+        whexp = wc3.number_input("Min Health Exp. (% GDP)", value=float(wb.get("min_health_expenditure_pct_gdp",5.0)), step=0.5, key="adm_whexp")
+        wlbl  = st.text_input("Benchmark Label", value=wb.get("sdg_label","SDG 3.1 Target (2030)"), key="adm_wlbl")
+        wshow = st.checkbox("Show benchmark lines on all charts", value=wb.get("show_benchmark_lines",True), key="adm_wshow")
+        if st.button("💾 Apply WHO Benchmarks", type="primary", key="adm_btn_wb"):
+            cfg.setdefault("who_benchmarks",{})
+            cfg["who_benchmarks"].update({"sdg_mmr_target":wsdg,"sdg_target_year":int(wyr),"sdg_label":wlbl,
+                                          "min_health_expenditure_pct_gdp":whexp,"show_benchmark_lines":wshow})
+            _save_cfg(cfg); st.success("✅ WHO benchmarks updated.")
+    # ── TAB 4  MODEL SETTINGS ─────────────────────────────────────────────────
+    with t4:
+        st.markdown('<div class="adm">🤖 ML Model Configuration</div>', unsafe_allow_html=True)
+        st.warning("⚠️ Changing hyperparameters retrains models on the next dashboard load.")
+        ms2 = cfg.get("model_settings",{})
+        def_mdl = st.radio("Default Active Model",["Random Forest","Gradient Boosting"],
+                           index=0 if ms2.get("default_model","Random Forest")=="Random Forest" else 1,
+                           horizontal=True, key="adm_mdl")
+        st.markdown("#### 🌲 Random Forest")
+        rf2 = ms2.get("random_forest",{}); mc1,mc2,mc3 = st.columns(3)
+        rf_n = mc1.number_input("n_estimators",    value=int(rf2.get("n_estimators",150)), step=10, min_value=10, key="adm_rfn")
+        rf_d = mc2.number_input("max_depth",       value=int(rf2.get("max_depth",8)),      step=1,  min_value=2,  key="adm_rfd")
+        rf_l = mc3.number_input("min_samples_leaf",value=int(rf2.get("min_samples_leaf",3)),step=1, min_value=1,  key="adm_rfl")
+        st.markdown("#### 📈 Gradient Boosting")
+        gb2 = ms2.get("gradient_boosting",{}); gc1,gc2,gc3,gc4 = st.columns(4)
+        gb_n  = gc1.number_input("n_estimators", value=int(gb2.get("n_estimators",150)),      step=10,  min_value=10, key="adm_gbn")
+        gb_lr = gc2.number_input("learning_rate",value=float(gb2.get("learning_rate",0.08)),  step=0.01,format="%.3f",key="adm_gblr")
+        gb_d  = gc3.number_input("max_depth",    value=int(gb2.get("max_depth",4)),           step=1,   min_value=2,  key="adm_gbd")
+        gb_sub= gc4.number_input("subsample",    value=float(gb2.get("subsample",0.8)),       step=0.05,min_value=0.1,max_value=1.0,key="adm_gbs")
+        ts2   = st.slider("Test set fraction", 0.10, 0.40, float(ms2.get("test_split",0.20)), step=0.05, key="adm_ts")
+        if st.button("💾 Apply Model Settings", type="primary", key="adm_btn_ms"):
+            cfg.setdefault("model_settings",{})
+            cfg["model_settings"].update({"default_model":def_mdl,
+                "random_forest":{"n_estimators":int(rf_n),"max_depth":int(rf_d),"min_samples_leaf":int(rf_l)},
+                "gradient_boosting":{"n_estimators":int(gb_n),"learning_rate":float(gb_lr),"max_depth":int(gb_d),"subsample":float(gb_sub)},
+                "test_split":float(ts2)})
+            _save_cfg(cfg); st.success("✅ Model settings applied. Dashboard retrains on next load.")
+    # ── TAB 5  POLICY SIMULATION ──────────────────────────────────────────────
+    with t5:
+        st.markdown('<div class="adm">📋 Policy Simulation Controls</div>', unsafe_allow_html=True)
+        ps2 = cfg.get("policy_simulation",{}); sr2 = ps2.get("slider_ranges",{})
+        levers = [("gdp_pct","💰 GDP (%)"),("health_pct","🏥 Health Exp (%)"),
+                  ("fertility_pct","👶 Fertility (%)"),("education_pct","📚 Education (%)")]
+        new_ranges = {}
+        for key,label in levers:
+            r = sr2.get(key,{"min":-30,"max":60,"step":5})
+            lc,mnc,mxc = st.columns([3,1,1])
+            lc.markdown(f"**{label}**")
+            mn2 = mnc.number_input("Min",value=int(r["min"]),step=5,key=f"adm_mn_{key}")
+            mx2 = mxc.number_input("Max",value=int(r["max"]),step=5,key=f"adm_mx_{key}")
+            new_ranges[key] = {"min":mn2,"max":mx2,"step":r.get("step",5)}
+        st.markdown("---"); st.markdown("#### 🏛️ Government Scenario")
+        gs2 = ps2.get("government_scenario",{})
+        gs_name = st.text_input("Scenario Name",value=gs2.get("name","Ghana Health Sector Strategy 2030"),key="adm_gsn")
+        gg1,gg2,gg3,gg4 = st.columns(4)
+        gs_gdp = gg1.number_input("GDP %",        value=int(gs2.get("gdp_pct",15)),       step=5,key="adm_gsg")
+        gs_hlt = gg2.number_input("Health Exp %", value=int(gs2.get("health_pct",40)),    step=5,key="adm_gsh")
+        gs_frt = gg3.number_input("Fertility %",  value=int(gs2.get("fertility_pct",-15)),step=5,key="adm_gsf")
+        gs_edu = gg4.number_input("Education %",  value=int(gs2.get("education_pct",25)), step=5,key="adm_gse")
+        show_btn = st.checkbox("Show Govt Scenario button on dashboard",
+                               value=ps2.get("show_gov_scenario_button",True),key="adm_gsb")
+        if st.button("💾 Apply Simulation Settings",type="primary",key="adm_btn_ps"):
+            cfg.setdefault("policy_simulation",{})
+            cfg["policy_simulation"].update({"slider_ranges":new_ranges,"show_gov_scenario_button":show_btn,
+                "government_scenario":{"name":gs_name,"gdp_pct":int(gs_gdp),"health_pct":int(gs_hlt),
+                                       "fertility_pct":int(gs_frt),"education_pct":int(gs_edu)}})
+            _save_cfg(cfg); st.success("✅ Policy simulation settings applied.")
+    # ── TAB 6  ECONOMETRICS ───────────────────────────────────────────────────
+    with t6:
+        st.markdown('<div class="adm">📊 Econometric Model Controls</div>', unsafe_allow_html=True)
+        ec2 = cfg.get("econometrics",{})
+        ec_c1,ec_c2 = st.columns(2)
+        show_ols = ec_c1.checkbox("Show Pooled OLS table",      value=ec2.get("show_ols",True), key="adm_ols")
+        show_fe  = ec_c2.checkbox("Show Fixed Effects table",   value=ec2.get("show_fe",True),  key="adm_fe")
+        sig_opts = {"1% (α=0.01)":0.01,"5% (α=0.05)":0.05,"10% (α=0.10)":0.10}
+        cur_sig  = ec2.get("significance_level",0.05)
+        cur_lbl  = {0.01:"1% (α=0.01)",0.05:"5% (α=0.05)",0.10:"10% (α=0.10)"}.get(cur_sig,"5% (α=0.05)")
+        sel_sig  = st.radio("Significance level",list(sig_opts.keys()),
+                            index=list(sig_opts.keys()).index(cur_lbl),horizontal=True,key="adm_sig")
+        st.markdown("#### Variables in Regression")
+        ALL_VARS = {"log_gdp":"log(GDP per Capita)","log_health_exp":"log(Health Expenditure)",
+                    "fertility_rate":"Fertility Rate","female_secondary_enrollment":"Female Education (%)"}
+        cur_vars = ec2.get("features_in_model",list(ALL_VARS.keys())); new_vars = []
+        var_cols2 = st.columns(2)
+        for i,(k,lbl) in enumerate(ALL_VARS.items()):
+            if var_cols2[i%2].checkbox(lbl,value=(k in cur_vars),key=f"adm_ev_{k}"): new_vars.append(k)
+        if not new_vars: new_vars = cur_vars
+        if st.button("💾 Apply Econometric Settings",type="primary",key="adm_btn_ec"):
+            cfg.setdefault("econometrics",{})
+            cfg["econometrics"].update({"show_ols":show_ols,"show_fe":show_fe,
+                                        "significance_level":sig_opts[sel_sig],"features_in_model":new_vars})
+            _save_cfg(cfg); st.success("✅ Econometric settings applied.")
+    # ── TAB 7  ALERTS ─────────────────────────────────────────────────────────
+    with t7:
+        st.markdown('<div class="adm">🔔 Country Alert Management</div>', unsafe_allow_html=True)
+        st.info("Active alerts appear as banners on the Country Analysis tab.")
+        alerts = cfg.get("alerts",[])
+        to_del = None
+        for i,al in enumerate(alerts):
+            with st.expander(f"{'🔴' if al.get('active',True) else '⬜'} {al.get('country','—')} — {al.get('message','')[:50]}…"):
+                al_c1,al_c2,al_c3 = st.columns([2,1,1])
+                alerts[i]["country"]   = al_c1.text_input("Country",value=al.get("country",""),key=f"adm_ac_{i}")
+                alerts[i]["threshold"] = al_c2.number_input("MMR Threshold",value=int(al.get("threshold",500)),step=10,key=f"adm_at_{i}")
+                alerts[i]["color"]     = al_c3.color_picker("Colour",value=al.get("color",WHO_RED),key=f"adm_acl_{i}")
+                alerts[i]["message"]   = st.text_area("Message",value=al.get("message",""),height=70,key=f"adm_am_{i}")
+                alerts[i]["active"]    = st.checkbox("Active",value=al.get("active",True),key=f"adm_aa_{i}")
+                if st.button("🗑️ Delete",key=f"adm_del_{i}"): to_del = i
+        if to_del is not None:
+            alerts.pop(to_del); cfg["alerts"] = alerts; _save_cfg(cfg); st.rerun()
+        st.markdown('<div class="adm">➕ Add New Alert</div>', unsafe_allow_html=True)
+        na_c1,na_c2,na_c3 = st.columns([2,1,1])
+        na_cty = na_c1.text_input("Country (exact)",placeholder="e.g. Nigeria",key="adm_nac")
+        na_thr = na_c2.number_input("MMR Threshold",value=500,step=10,min_value=1,key="adm_nat")
+        na_clr = na_c3.color_picker("Colour",value=WHO_RED,key="adm_nacl")
+        na_msg = st.text_area("Alert Message",placeholder="e.g. Urgent intervention required.",height=70,key="adm_nam")
+        na_act = st.checkbox("Active immediately",value=True,key="adm_naa")
+        if st.button("➕ Add Alert",type="primary",key="adm_btn_al"):
+            if na_cty and na_msg:
+                cfg.setdefault("alerts",[]).append({"country":na_cty,"threshold":int(na_thr),
+                                                     "message":na_msg,"color":na_clr,"active":na_act})
+                _save_cfg(cfg); st.success(f"✅ Alert added for {na_cty}."); st.rerun()
+            else: st.warning("Enter both a country and a message.")
+    # ── TAB 8  COUNTRY SETTINGS ───────────────────────────────────────────────
+    with t8:
+        st.markdown('<div class="adm">🌍 Country & Data Settings</div>', unsafe_allow_html=True)
+        cs2 = cfg.get("country_settings",{})
+        new_def = st.text_input("Default Country on Load",value=cs2.get("default_country","Ghana"),key="adm_csd")
+        if st.button("💾 Set Default Country",key="adm_btn_dc"):
+            cfg.setdefault("country_settings",{})["default_country"] = new_def
+            _save_cfg(cfg); st.success(f"✅ Default → {new_def}")
+        st.markdown('<div class="adm">📂 Upload New Dataset (CSV)</div>', unsafe_allow_html=True)
+        st.caption("Required columns: country, year, maternal_mortality, gdp_per_capita, health_expenditure_per_capita, fertility_rate, female_secondary_enrollment")
+        ucsv = st.file_uploader("Upload CSV",type=["csv"],key="adm_ucsv")
+        if ucsv:
+            try:
+                udf = pd.read_csv(ucsv)
+                req = ["country","year","maternal_mortality","gdp_per_capita",
+                       "health_expenditure_per_capita","fertility_rate","female_secondary_enrollment"]
+                miss = [c for c in req if c not in udf.columns]
+                if miss: st.error(f"Missing columns: {miss}")
+                else:
+                    udf = udf.dropna(subset=req)
+                    udf["log_mmr"] = np.log(udf["maternal_mortality"].clip(lower=1))
+                    udf["log_gdp"] = np.log(udf["gdp_per_capita"].clip(lower=1))
+                    udf["log_health_exp"] = np.log(udf["health_expenditure_per_capita"].clip(lower=1))
+                    st.success(f"✅ {len(udf):,} rows · {udf['country'].nunique()} countries")
+                    st.dataframe(udf.head(5),use_container_width=True)
+                    if st.button("✅ Apply uploaded dataset",type="primary",key="adm_apply_csv"):
+                        st.session_state["custom_df"] = udf
+                        st.session_state["cfg_updated"] = True
+                        st.success("Dataset applied. Close admin to see dashboard update.")
+            except Exception as e: st.error(f"Error: {e}")
+        st.markdown('<div class="adm">📝 Policy Recommendations</div>', unsafe_allow_html=True)
+        pr2 = cs2.get("policy_recommendations",{}); pr_opts = list(pr2.keys())+["➕ Add new…"]
+        pr_sel = st.selectbox("Country to edit",pr_opts,key="adm_prsel")
+        if pr_sel == "➕ Add new…": pr_sel = st.text_input("Country name",key="adm_prnew")
+        if pr_sel and pr_sel != "➕ Add new…":
+            new_rec = st.text_area(f"Recommendation for {pr_sel}",value=pr2.get(pr_sel,""),height=100,key="adm_rec")
+            if st.button("💾 Save Recommendation",key="adm_btn_rec"):
+                cfg.setdefault("country_settings",{}).setdefault("policy_recommendations",{})[pr_sel] = new_rec
+                _save_cfg(cfg); st.success(f"✅ Recommendation for {pr_sel} saved.")
+        st.markdown('<div class="adm">🤝 Peer Groups</div>', unsafe_allow_html=True)
+        pg2 = cs2.get("peer_groups",{}); pg_opts = list(pg2.keys())+["➕ New…"]
+        pg_sel = st.selectbox("Country",pg_opts,key="adm_pgsel")
+        if pg_sel == "➕ New…": pg_sel = st.text_input("Country name",key="adm_pgnew")
+        if pg_sel and pg_sel != "➕ New…":
+            existing = ", ".join(pg2.get(pg_sel,[]))
+            new_peers_raw = st.text_input(f"Peers for {pg_sel} (comma-separated)",value=existing,key="adm_peers")
+            if st.button("💾 Save Peer Group",key="adm_btn_pg"):
+                cfg.setdefault("country_settings",{}).setdefault("peer_groups",{})[pg_sel] = [p.strip() for p in new_peers_raw.split(",") if p.strip()]
+                _save_cfg(cfg); st.success(f"✅ Peer group for {pg_sel} saved.")
+    # ── TAB 9  SAVE & EXPORT ─────────────────────────────────────────────────
+    with t9:
+        st.markdown('<div class="adm">💾 Save, Export & Reset</div>', unsafe_allow_html=True)
+        sc1,sc2 = st.columns(2)
+        with sc1:
+            st.markdown("#### ⬇️ Export config.json")
+            st.download_button("Download config.json",
+                               data=json.dumps(cfg,indent=2,ensure_ascii=False),
+                               file_name="config.json",mime="application/json",
+                               use_container_width=True,key="adm_dl")
+        with sc2:
+            st.markdown("#### ⬆️ Import config")
+            upcfg = st.file_uploader("Upload config.json",type=["json"],key="adm_upcfg")
+            if upcfg:
+                try:
+                    restored = json.load(upcfg)
+                    if st.button("✅ Apply uploaded config",type="primary",key="adm_btn_restore"):
+                        _save_cfg(restored); st.success("✅ Config restored."); st.rerun()
+                except Exception as e: st.error(f"Invalid JSON: {e}")
+        st.markdown("---"); st.markdown("#### 🔄 Reset to factory defaults")
+        st.warning("This will overwrite all current admin settings.")
+        if st.button("🔄 Reset to defaults",type="secondary",key="adm_btn_reset"):
+            DEFAULTS = {"branding":{"dashboard_title":"MCH Policy Intelligence Dashboard",
+                "dashboard_subtitle":"Maternal & Child Health · WHO / World Bank Data · Ministry of Health, Ghana",
+                "footer_text":"MCH Policy Intelligence Dashboard · WHO / World Bank · Ministry of Health, Ghana · 2026",
+                "show_tabs":{"global_overview":True,"country_analysis":True,"econometric_models":True,"xai_features":True,"policy_simulation":True}},
+                "risk_thresholds":{"high_mmr":300,"medium_mmr":100,"low_mmr":50,
+                "labels":{"high":"High Risk","medium":"Moderate Risk","low":"Low Risk","very_low":"On Track"},
+                "colors":{"high":"#E63329","medium":"#F39200","low":"#009FD4","very_low":"#00A651"}},
+                "who_benchmarks":{"sdg_mmr_target":70,"sdg_target_year":2030,"sdg_label":"SDG 3.1 Target (2030)",
+                "min_health_expenditure_pct_gdp":5.0,"show_benchmark_lines":True},
+                "model_settings":{"default_model":"Random Forest",
+                "random_forest":{"n_estimators":150,"max_depth":8,"min_samples_leaf":3},
+                "gradient_boosting":{"n_estimators":150,"learning_rate":0.08,"max_depth":4,"subsample":0.8},"test_split":0.2},
+                "policy_simulation":{"slider_ranges":{"gdp_pct":{"min":-30,"max":60,"step":5},
+                "health_pct":{"min":-30,"max":100,"step":5},"fertility_pct":{"min":-50,"max":20,"step":5},
+                "education_pct":{"min":-20,"max":60,"step":5}},
+                "government_scenario":{"name":"Ghana Health Sector Strategy 2030","gdp_pct":15,"health_pct":40,"fertility_pct":-15,"education_pct":25},
+                "show_gov_scenario_button":True},
+                "econometrics":{"show_ols":True,"show_fe":True,"significance_level":0.05,
+                "features_in_model":["log_gdp","log_health_exp","fertility_rate","female_secondary_enrollment"]},
+                "alerts":[],"country_settings":{"default_country":"Ghana",
+                "peer_groups":{"Ghana":["Nigeria","Kenya","Senegal","Cameroon"]},
+                "policy_recommendations":{"Ghana":"Priority: Increase skilled birth attendance. Target MMR < 70 by 2030."},
+                "timeline_annotations":{"Ghana":[{"year":2003,"label":"NHIS Established","color":"#009FD4"},
+                {"year":2008,"label":"Free Maternal Care Policy","color":"#00A651"}]}}}
+            _save_cfg(DEFAULTS); st.success("✅ Reset to factory defaults."); st.rerun()
+        st.markdown("---"); st.markdown("#### 📋 Current live config")
+        st.json(cfg)
+
 # ── Data & models ──────────────────────────────────────────────────────────────
 @st.cache_data(show_spinner=False)
 def _load_data_from_file(path):
@@ -400,12 +750,15 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("*Ministry of Health, Ghana*  \n*MPhil Data Science · 2026*")
     st.markdown("---")
-    # Admin Panel — JS pathname navigation bypasses Streamlit's page registry
-    # entirely and works on every Streamlit version deployed on Cloud.
+    # Admin Panel — session-state toggle, no navigation or JS required
     if st.button("\u2699\ufe0f  Admin Panel", use_container_width=True, key="nav_admin"):
-        import streamlit.components.v1 as _stc
-        _stc.html("<script>window.parent.location.pathname='/admin';</script>", height=0)
-        st.stop()
+        st.session_state["_admin_open"] = not st.session_state.get("_admin_open", False)
+        st.rerun()
+
+# ── Inline admin panel ───────────────────────────────────────────────────────────
+if st.session_state.get("_admin_open", False):
+    _show_inline_admin()
+    st.stop()
 
 # ── Derived values ─────────────────────────────────────────────────────────────
 am   = models["rf"] if mc == "Random Forest" else models["gb"]
