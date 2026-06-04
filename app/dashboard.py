@@ -995,9 +995,30 @@ if "econometric_models" in tm:
                      thickness=2,width=6),
         mode="markers",marker=dict(size=11,color=cl,line=dict(color=WHO_WHITE,width=1.5)),name=mn))
    fig_c.add_hline(y=0,line_dash="dash",line_color=WHO_GRAY,line_width=1.2)
-   fig_c.update_layout(**_L,title="Coefficient Estimates with 95% CI",
-                       xaxis_title="Variable",yaxis_title="Coefficient on ln(MMR)",
-                       legend=dict(orientation="h",yanchor="bottom",y=1.02))
+   fig_c.update_layout(
+       **_L,
+       title=dict(
+           text="Coefficient Estimates with 95% Confidence Intervals",
+           font=dict(size=14, color=WHO_NAVY, family="Segoe UI, Arial"),
+           x=0, xanchor="left", y=0.97, yanchor="top",
+       ),
+       xaxis=dict(
+           title="Variable", tickangle=-20,
+           tickfont=dict(size=11), gridcolor="#E8EFF8",
+       ),
+       yaxis=dict(
+           title="Coefficient on ln(MMR)",
+           gridcolor="#E8EFF8", zeroline=False,
+       ),
+       legend=dict(
+           orientation="h", xanchor="center", x=0.5,
+           yanchor="top", y=-0.22,          # below x-axis label
+           bgcolor="rgba(255,255,255,0.85)",
+           bordercolor="#D6E8F7", borderwidth=1,
+           font=dict(size=12),
+       ),
+       margin=dict(t=55, b=100, l=65, r=20),  # extra bottom for legend
+   )
    st.plotly_chart(fig_c, use_container_width=True)
 
    go_=ols_m.params.get("log_gdp",0); gf_=fe_m.params.get("log_gdp",0)
